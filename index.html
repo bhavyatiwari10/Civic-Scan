@@ -1,0 +1,250 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>CivicScan — Secure Online Voting</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600;9..144,700&family=Space+Grotesk:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="css/style.css" />
+</head>
+<body>
+<div class="shell">
+
+  <div class="topbar">
+    <div class="brand">
+      <div class="brand-mark">
+        <svg viewBox="0 0 24 24" fill="none"><path d="M12 2 4 5v6c0 5 3.4 9.2 8 11 4.6-1.8 8-6 8-11V5l-8-3Z" stroke="#04231d" stroke-width="1.6" fill="#04231d" fill-opacity="0.12"/><path d="m8.5 12 2.5 2.5 4.5-5" stroke="#04231d" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      </div>
+      <div>
+        <div class="brand-name">CivicScan</div>
+        <div class="brand-sub">Biometric Ballot Access</div>
+      </div>
+    </div>
+    <div class="session-badge">
+      <span class="dot" id="sessionDot"></span>
+      <span id="sessionText">No active session</span>
+    </div>
+    <button class="theme-toggle" id="themeToggle" title="Toggle light/dark mode" aria-label="Toggle theme">🌙</button>
+  </div>
+
+  <div class="grid">
+    <!-- Stepper -->
+    <div class="stepper" id="stepper">
+      <div class="step" data-step="scan">
+        <div>
+          <div class="step-node mono">01</div>
+          <div class="step-line"></div>
+        </div>
+        <div class="step-label">
+          <div class="step-title">Biometric Scan</div>
+          <div class="step-desc">Face verification at the checkpoint</div>
+        </div>
+      </div>
+      <div class="step" data-step="login">
+        <div>
+          <div class="step-node mono">02</div>
+          <div class="step-line"></div>
+        </div>
+        <div class="step-label">
+          <div class="step-title">Credentials</div>
+          <div class="step-desc">Confirm your voter ID</div>
+        </div>
+      </div>
+      <div class="step" data-step="vote">
+        <div>
+          <div class="step-node mono">03</div>
+          <div class="step-line"></div>
+        </div>
+        <div class="step-label">
+          <div class="step-title">Cast Ballot</div>
+          <div class="step-desc">Choose a candidate &amp; submit</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Main -->
+    <div>
+
+      <!-- REGISTER -->
+      <div class="card" id="screen-register">
+        <div class="eyebrow">Enrollment</div>
+        <h1 class="card-title">Register to vote</h1>
+        <p class="card-sub">Create your voter profile and enroll your face. This reference scan is what the checkpoint will compare against every time you sign in.</p>
+
+        <div class="form-grid">
+          <div class="field">
+            <label for="regName">Full name</label>
+            <input id="regName" type="text" placeholder="Jordan Avery" autocomplete="name" />
+          </div>
+          <div class="field">
+            <label for="regId">Voter ID</label>
+            <input id="regId" type="text" placeholder="e.g. CV-4471" autocomplete="off" />
+          </div>
+        </div>
+
+        <div class="scanner-wrap">
+          <div class="viewfinder" id="regViewfinder">
+            <div class="placeholder" id="regPlaceholder">Camera preview will appear here</div>
+            <video id="regVideo" autoplay muted playsinline class="hidden"></video>
+            <canvas id="regCanvas" class="hidden"></canvas>
+            <div class="ring" id="regRing"></div>
+            <div class="bracket tl"></div><div class="bracket tr"></div>
+            <div class="bracket bl"></div><div class="bracket br"></div>
+            <div class="scan-line" id="regScanLine"></div>
+          </div>
+          <div class="scan-status mono" id="regStatus">Awaiting camera access</div>
+        </div>
+
+        <div id="regAlert"></div>
+
+        <div class="btn-row">
+          <button class="btn btn-ghost" id="regCamBtn">Enable camera</button>
+          <button class="btn btn-primary" id="regCaptureBtn" disabled>Capture reference face</button>
+          <button class="btn btn-gold hidden" id="regSubmitBtn">Complete enrollment →</button>
+        </div>
+
+        <div class="note">
+          <span>ℹ️</span>
+          <span>Demo notice: face data captured here stays in this browser's sandboxed storage for this app only. A production system would encrypt biometric templates and verify liveness server-side — this prototype simulates that pipeline using your camera and on-device detection.</span>
+        </div>
+      </div>
+
+      <!-- SCAN (login gate) -->
+      <div class="card hidden" id="screen-scan">
+        <div class="eyebrow">Checkpoint 01</div>
+        <h1 class="card-title">Face verification</h1>
+        <p class="card-sub" id="scanIntro">Center your face in the frame. We'll confirm it's you before showing the login page.</p>
+
+        <div class="scanner-wrap">
+          <div class="viewfinder" id="scanViewfinder">
+            <div class="placeholder" id="scanPlaceholder">Camera preview will appear here</div>
+            <video id="scanVideo" autoplay muted playsinline class="hidden"></video>
+            <div class="ring" id="scanRing"></div>
+            <div class="bracket tl"></div><div class="bracket tr"></div>
+            <div class="bracket bl"></div><div class="bracket br"></div>
+            <div class="scan-line" id="scanScanLine"></div>
+          </div>
+          <div class="scan-status mono" id="scanStatus">Awaiting camera access</div>
+        </div>
+
+        <div id="scanAlert"></div>
+
+        <div class="btn-row">
+          <button class="btn btn-primary" id="scanStartBtn">Begin face scan</button>
+          <button class="btn btn-ghost hidden" id="scanRetryBtn">Retry scan</button>
+        </div>
+
+        <div class="footer-link"><button id="forgetProfileBtn">Not you? Reset enrollment</button></div>
+      </div>
+
+      <!-- LOGIN -->
+      <div class="card hidden" id="screen-login">
+        <div class="eyebrow">Checkpoint 02 · Identity confirmed ✓</div>
+        <h1 class="card-title">Sign in to vote</h1>
+        <p class="card-sub">Your face was verified. Enter your voter credentials to continue to the ballot.</p>
+
+        <div class="field">
+          <label for="loginId">Voter ID</label>
+          <input id="loginId" type="text" placeholder="e.g. CV-4471" autocomplete="off" />
+        </div>
+        <div class="field">
+          <label for="loginPw">Password</label>
+          <input id="loginPw" type="password" placeholder="••••••••" autocomplete="off" />
+          <div class="field-hint">Demo only — any password of 4+ characters is accepted. Your identity is already established by the face scan above.</div>
+        </div>
+
+        <div id="loginAlert"></div>
+
+        <div class="btn-row">
+          <button class="btn btn-primary" id="loginSubmitBtn">Log in →</button>
+          <button class="btn btn-ghost" id="loginBackBtn">← Back to scan</button>
+        </div>
+      </div>
+
+      <!-- HOME / VOTE -->
+      <div class="card hidden" id="screen-home">
+        <div class="eyebrow" id="homeEyebrow">Checkpoint 03 · Welcome</div>
+        <h1 class="card-title" id="homeTitle">Cast your ballot</h1>
+        <p class="card-sub">Select one candidate below. Votes are final once submitted.</p>
+
+        <div class="tabs">
+          <button class="tab active" id="tabVote">Ballot</button>
+          <button class="tab" id="tabResults">Live results</button>
+          <button class="tab" id="tabAudit">Audit trail</button>
+        </div>
+
+        <!-- Ballot tab -->
+        <div id="paneVote">
+          <div class="candidate-list" id="candidateList"></div>
+          <div id="voteAlert"></div>
+          <div class="btn-row">
+            <button class="btn btn-gold" id="submitVoteBtn" disabled>Submit vote</button>
+            <button class="btn btn-ghost" id="logoutBtn">Log out</button>
+          </div>
+
+          <div class="voted-panel hidden" id="votedPanel">
+            <div class="voted-check">
+              <svg width="24" height="24" viewBox="0 0 24 24" fill="none"><path d="m5 13 4 4 10-10" stroke="#33E0C7" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg>
+            </div>
+            <div class="card-title" style="font-size:20px;">Your vote is recorded</div>
+            <p class="card-sub" style="margin:8px auto 0;" id="votedFor"></p>
+            <div class="receipt-box" id="receiptBox">
+              <div class="receipt-label mono">VERIFIABLE RECEIPT</div>
+              <div class="receipt-code mono" id="receiptCode"></div>
+              <img id="receiptQR" alt="Receipt QR code" width="140" height="140">
+              <p class="receipt-note">This code proves a ballot was cast — it does not reveal which candidate you chose. Look it up under "Audit trail" to confirm it was recorded without tampering.</p>
+            </div>
+            <div class="btn-row" style="justify-content:center;">
+              <button class="btn btn-primary" id="viewResultsBtn">View live results</button>
+              <button class="btn btn-ghost" id="logoutBtn2">Log out</button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Results tab -->
+        <div id="paneResults" class="hidden">
+          <div class="results" id="resultsList"></div>
+          <div class="total-votes" id="totalVotesText"></div>
+          <div class="turnout-section">
+            <div class="turnout-title mono">TURNOUT OVER TIME</div>
+            <div id="turnoutChart"></div>
+          </div>
+          <div class="btn-row">
+            <button class="btn btn-ghost small" id="exportResultsBtn">⤓ Export results (CSV)</button>
+          </div>
+        </div>
+
+        <!-- Audit trail tab -->
+        <div id="paneAudit" class="hidden">
+          <p class="card-sub" style="margin-bottom:16px;">Every enrollment, scan, login, and vote appends a SHA-256 hash-chained entry — like a simplified version of the tamper-evident logs real election systems use. Changing any past entry would break the chain below.</p>
+          <div class="btn-row" style="margin-top:0;margin-bottom:18px;">
+            <button class="btn btn-primary small" id="verifyChainBtn">🔒 Verify chain integrity</button>
+            <button class="btn btn-ghost small" id="exportAuditBtn">⤓ Export audit log (JSON)</button>
+          </div>
+          <div id="chainVerdict"></div>
+          <div class="audit-log" id="auditLog"></div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+
+<div class="idle-overlay hidden" id="idleOverlay">
+  <div class="idle-box">
+    <div class="eyebrow">Checkpoint session</div>
+    <h2 class="card-title" style="font-size:22px;">Still there?</h2>
+    <p class="card-sub">For voting-booth security, you'll be signed out after a period of inactivity.</p>
+    <div class="idle-countdown mono" id="idleCountdown">20</div>
+    <div class="btn-row" style="justify-content:center;">
+      <button class="btn btn-primary" id="idleStayBtn">I'm still here</button>
+    </div>
+  </div>
+</div>
+
+<script src="js/app.js"></script>
+</body>
+</html>
