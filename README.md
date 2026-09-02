@@ -2,7 +2,7 @@
 
 A front-end demo of a biometric-gated voting flow: **enroll → face scan (with a liveness check) → login → vote → verifiable receipt → live results → tamper-evident audit trail.**
 
-🔗 **Live Demo:** [https://bhavyatiwari10.github.io/Civic-Scan/)
+🔗 **Live Demo:** [https://bhavyatiwari10.github.io/Civic-Scan/]
 
 ## Project structure
 ```
